@@ -1,0 +1,91 @@
+/* 
+Human Tasks:
+1. Verify TailwindCSS configuration in tailwind.config.js matches design system specifications
+2. Ensure proper integration with Next.js build process
+3. Validate that custom styles don't conflict with Tailwind utilities
+4. Check that all design tokens are properly configured in the theme
+*/
+
+/* tailwindcss v3.x */
+
+/*
+Requirement Addressed: User Interface Design
+Location: Technical Specification/User Interface Design/Design System Specifications
+Description: Imports TailwindCSS core functionalities and integrates with global and editor styles
+*/
+
+/* Import TailwindCSS base styles */
+@tailwind base;
+
+/* Import TailwindCSS component styles */
+@tailwind components;
+
+/* Import TailwindCSS utility styles */
+@tailwind utilities;
+
+/* Import global styles */
+@import "./globals.css";
+
+/* Import editor-specific styles */
+@import "./editor.css";
+
+/*
+Requirement Addressed: User Interface Design
+Location: Technical Specification/User Interface Design/Design System Specifications
+Description: Extends TailwindCSS with custom design system specifications
+*/
+
+@layer base {
+  /* Ensure smooth scrolling behavior */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Set default text antialiasing */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  /* Add any custom component styles here */
+}
+
+@layer utilities {
+  /* Add any custom utility styles here */
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Enable GPU acceleration for smoother animations */
+.transform-gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Print styles override */
+@media print {
+  @page {
+    margin: 2cm;
+  }
+}
+
+/* High contrast mode adjustments */
+@media (prefers-contrast: more) {
+  :root {
+    --tw-border-opacity: 1;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
