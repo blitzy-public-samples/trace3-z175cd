@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  Requirement: User Interface Design
+  Location: Technical Specification/User Interface Design/Interface Elements
+  Description: Provides a consistent branding element used across the application in components like Header, Footer, and Navigation.
+-->
+<svg width="200" height="40" viewBox="0 0 200 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background rectangle with rounded corners -->
+  <rect width="200" height="40" rx="8" fill="#FFFFFF"/>
+  
+  <!-- Main text "Substack" -->
+  <text 
+    x="10" 
+    y="28" 
+    font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif"
+    font-size="24"
+    font-weight="700"
+    fill="#1A73E8"
+    letter-spacing="-0.02em"
+  >
+    Substack
+  </text>
+  
+  <!-- "Replica" text -->
+  <text 
+    x="120" 
+    y="28"
+    font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif"
+    font-size="24"
+    font-weight="500"
+    fill="#4B5563"
+    letter-spacing="-0.01em"
+  >
+    Replica
+  </text>
+  
+  <!-- Decorative elements -->
+  <path 
+    d="M95 12L98 15L95 18" 
+    stroke="#1A73E8" 
+    stroke-width="2" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+  />
+  
+  <!-- Brand accent line -->
+  <line 
+    x1="10" 
+    y1="32" 
+    x2="190" 
+    y2="32" 
+    stroke="#E5E7EB" 
+    stroke-width="1"
+  />
+  
+  <!-- Focus outline for accessibility -->
+  <rect 
+    x="1" 
+    y="1" 
+    width="198" 
+    height="38" 
+    rx="7" 
+    stroke="#1A73E8" 
+    stroke-width="2" 
+    stroke-opacity="0" 
+    class="focus-visible:stroke-opacity-100"
+  />
+</svg>
