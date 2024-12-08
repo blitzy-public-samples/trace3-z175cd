@@ -1,0 +1,105 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Deploy and manage Kibana for log visualization and analytics
+# Requirements Addressed:
+# - Centralized Logging and Analytics (Technical Specification/System Architecture/Monitoring):
+#   Kibana provides visualization and analytics capabilities for logs and metrics
+#   stored in Elasticsearch, enabling system monitoring and troubleshooting.
+
+# Human Tasks:
+# 1. Verify Elasticsearch cluster is properly configured and accessible
+# 2. Configure SSL/TLS certificates if needed for secure communication
+# 3. Review and adjust resource limits based on actual usage patterns
+# 4. Set up proper authentication and role-based access control for Kibana
+# 5. Configure index patterns and dashboards after initial deployment
+
+---
+# Deployment for Kibana
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: default
+  labels:
+    app: elk
+    component: kibana
+    environment: production
+  annotations:
+    description: "Kibana deployment for log visualization and analytics"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elk
+      component: kibana
+  template:
+    metadata:
+      labels:
+        app: elk
+        component: kibana
+    spec:
+      serviceAccountName: default-service-account
+      containers:
+        - name: kibana
+          image: docker.elastic.co/kibana/kibana:8.9.0
+          ports:
+            - containerPort: 5601
+              name: http
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              value: "http://elasticsearch:9200"
+            - name: SERVER_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: ELASTICSEARCH_SERVICEACCOUNT
+              value: "true"
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+          readinessProbe:
+            httpGet:
+              path: /api/status
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/status
+              port: http
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            timeoutSeconds: 5
+
+---
+# Service for Kibana
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: default
+  labels:
+    app: elk
+    component: kibana
+    environment: production
+  annotations:
+    description: "Service for accessing Kibana interface"
+spec:
+  ports:
+    - port: 5601
+      targetPort: 5601
+      protocol: TCP
+      name: http
+  selector:
+    app: elk
+    component: kibana
+  type: ClusterIP
