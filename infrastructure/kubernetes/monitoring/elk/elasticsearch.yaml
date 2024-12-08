@@ -1,0 +1,135 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Deploy and manage Elasticsearch for centralized logging and analytics
+# Requirements Addressed:
+# - Centralized Logging and Analytics (Technical Specification/System Architecture/Monitoring):
+#   Elasticsearch provides indexing and search capabilities for logs and metrics
+#   collected from various platform components.
+
+# Human Tasks:
+# 1. Verify system limits are properly configured for Elasticsearch (vm.max_map_count >= 262144)
+# 2. Ensure storage class supports the required IOPS for Elasticsearch performance
+# 3. Review and adjust JVM heap size settings based on node capacity
+# 4. Configure backup strategy for Elasticsearch indices
+
+---
+# StatefulSet for Elasticsearch deployment
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: default
+  labels:
+    app: elk
+    component: elasticsearch
+    environment: production
+  annotations:
+    description: "Elasticsearch cluster for centralized logging and analytics"
+spec:
+  serviceName: elasticsearch
+  replicas: 3
+  selector:
+    matchLabels:
+      app: elk
+      component: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elk
+        component: elasticsearch
+    spec:
+      serviceAccountName: default-service-account
+      initContainers:
+        - name: fix-permissions
+          image: busybox:1.35
+          command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: elasticsearch-data
+              mountPath: /usr/share/elasticsearch/data
+        - name: increase-vm-max-map
+          image: busybox:1.35
+          command: ["sysctl", "-w", "vm.max_map_count=262144"]
+          securityContext:
+            privileged: true
+      containers:
+        - name: elasticsearch
+          image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
+          ports:
+            - name: http
+              containerPort: 9200
+            - name: transport
+              containerPort: 9300
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          env:
+            - name: node.name
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: cluster.name
+              value: "production-logging"
+            - name: discovery.seed_hosts
+              value: "elasticsearch-0.elasticsearch,elasticsearch-1.elasticsearch,elasticsearch-2.elasticsearch"
+            - name: cluster.initial_master_nodes
+              value: "elasticsearch-0,elasticsearch-1,elasticsearch-2"
+            - name: ES_JAVA_OPTS
+              value: "-Xms1g -Xmx1g"
+            - name: bootstrap.memory_lock
+              value: "true"
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1"
+            limits:
+              memory: "4Gi"
+              cpu: "2"
+          volumeMounts:
+            - name: elasticsearch-data
+              mountPath: /usr/share/elasticsearch/data
+          readinessProbe:
+            httpGet:
+              path: /_cluster/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /_cluster/health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+      volumes:
+        - name: elasticsearch-data
+          emptyDir: {}
+
+---
+# Service for Elasticsearch access
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: default
+  labels:
+    app: elk
+    component: elasticsearch
+    environment: production
+  annotations:
+    description: "Service for accessing Elasticsearch cluster"
+spec:
+  ports:
+    - name: http
+      port: 9200
+      targetPort: 9200
+      protocol: TCP
+    - name: transport
+      port: 9300
+      targetPort: 9300
+      protocol: TCP
+  selector:
+    app: elk
+    component: elasticsearch
+  type: ClusterIP
