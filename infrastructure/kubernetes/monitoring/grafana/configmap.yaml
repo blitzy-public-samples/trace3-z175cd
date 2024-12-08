@@ -1,0 +1,118 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Define Grafana configuration data for metrics visualization and dashboards
+# Requirements Addressed:
+# - Monitoring and Visualization (Technical Specification/System Architecture/Monitoring):
+#   Configures Grafana for visualizing metrics and logs collected from various monitoring systems,
+#   providing a centralized dashboard for observability.
+#
+# Human Tasks:
+# 1. Verify that Grafana deployment is configured to mount this ConfigMap at /etc/grafana
+# 2. Update admin_password with a secure password before deploying to production
+# 3. Review anonymous access settings based on security requirements
+# 4. Ensure network policies allow Grafana to access Prometheus service
+# 5. Configure persistent storage for dashboard configurations if needed
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-config
+  namespace: monitoring
+  labels:
+    app: grafana
+    environment: production
+  annotations:
+    description: "Grafana configuration for metrics visualization and dashboard management"
+data:
+  # Main Grafana configuration file
+  grafana.ini: |
+    [server]
+    protocol = http
+    http_port = 3000
+    domain = grafana.local
+    root_url = %(protocol)s://%(domain)s:%(http_port)s
+    serve_from_sub_path = false
+
+    [security]
+    # Default admin credentials (should be changed in production)
+    admin_user = admin
+    admin_password = admin
+    # Disable creation of admin user on first start
+    disable_initial_admin_creation = false
+    # Cookie settings
+    cookie_secure = true
+    cookie_samesite = lax
+
+    [auth.anonymous]
+    # Allow anonymous access with viewer role
+    enabled = true
+    org_name = Main Org.
+    org_role = Viewer
+
+    [auth]
+    disable_login_form = false
+    oauth_auto_login = false
+
+    [dashboard]
+    # Path where Grafana will look for dashboard JSON files
+    path = /var/lib/grafana/dashboards
+    # Disable dashboard deletion
+    versions_to_keep = 20
+
+    [log]
+    level = info
+    mode = console
+    filters = alerting:debug
+
+    [alerting]
+    enabled = true
+    execute_alerts = true
+
+    [metrics]
+    enabled = true
+    basic_auth_username = metrics
+    interval_seconds = 10
+
+    [datasources]
+    [[datasources]]
+    name = Prometheus
+    url = http://prometheus-service.default.svc.cluster.local:9090
+    type = prometheus
+    access = proxy
+    isDefault = true
+    jsonData = {"timeInterval":"5s"}
+
+  # Datasources configuration file
+  datasources.yaml: |
+    apiVersion: 1
+    deleteDatasources:
+      - name: Prometheus
+        orgId: 1
+
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-service.default.svc.cluster.local:9090
+        isDefault: true
+        version: 1
+        editable: false
+        jsonData:
+          timeInterval: "5s"
+          queryTimeout: "30s"
+          httpMethod: "POST"
+          manageAlerts: true
+        secureJsonData: {}
+
+  # Dashboard provider configuration
+  dashboard-providers.yaml: |
+    apiVersion: 1
+    providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards
