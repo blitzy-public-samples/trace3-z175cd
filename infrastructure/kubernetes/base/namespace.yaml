@@ -1,0 +1,34 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Define namespaces for logical isolation of resources within the cluster
+# Requirements Addressed:
+# - Resource Isolation (Technical Specification/System Architecture/Deployment Architecture):
+#   Namespaces provide logical isolation of resources within the Kubernetes cluster,
+#   enabling environment-specific configurations and resource management.
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: default
+  labels:
+    environment: production
+  annotations:
+    description: "Default namespace for production environment resources"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: staging
+  labels:
+    environment: staging
+  annotations:
+    description: "Namespace for staging environment resources"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: development
+  labels:
+    environment: development
+  annotations:
+    description: "Namespace for development environment resources"
