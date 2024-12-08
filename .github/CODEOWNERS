@@ -1,0 +1,18 @@
+# Requirement addressed: Code Review Governance
+# Location: Technical Specification/System Design/Development & Deployment
+
+# Default owners for everything in the repo
+# These owners will be requested for review on all PRs
+*                       @team-lead @repo-admin
+
+# Backend team owns all files under src/backend/
+src/backend/**          @backend-team
+
+# Frontend team owns all files under src/web/
+src/web/**             @frontend-team
+
+# DevOps team owns all infrastructure files
+infrastructure/**      @devops-team
+
+# CI/CD team owns all GitHub workflow files
+.github/workflows/**   @ci-cd-team
