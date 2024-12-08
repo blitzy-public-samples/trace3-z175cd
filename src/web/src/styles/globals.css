@@ -1,0 +1,230 @@
+/* globals.css */
+
+/* 
+Human Tasks:
+1. Ensure Inter font is properly loaded and configured in the Next.js application
+2. Verify color contrast ratios meet WCAG AAA standards
+3. Test responsive breakpoints across different devices
+4. Validate dark mode implementation if required
+*/
+
+/* tailwindcss v3.x */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+Requirement Addressed: User Interface Design
+Location: Technical Specification/User Interface Design/Design System Specifications
+Description: Implements the design system specifications for typography, color system, and layout
+*/
+
+/* Base Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 
+Requirement Addressed: User Interface Design
+Location: Technical Specification/User Interface Design/Design System Specifications
+Description: Implements core typography and color specifications
+*/
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: 600;
+  color: #333;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 2.5rem;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 2rem;
+  line-height: 1.25;
+}
+
+h3 {
+  font-size: 1.75rem;
+  line-height: 1.3;
+}
+
+h4 {
+  font-size: 1.5rem;
+  line-height: 1.35;
+}
+
+h5 {
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+
+h6 {
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+/* Links */
+a {
+  color: #1a73e8;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #0056b3;
+}
+
+a:focus {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+/* Buttons */
+button {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  padding: 0.5rem 1rem;
+  line-height: 1.5;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+button:focus {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+/* 
+Requirement Addressed: User Interface Design
+Location: Technical Specification/User Interface Design/Design System Specifications
+Description: Implements responsive layout grid specifications
+*/
+
+/* Responsive Container */
+.container {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 1rem;
+  padding-left: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1440px;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Focus visible utility */
+.focus-visible:focus {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  body {
+    background-color: #ffffff;
+    color: #000000;
+  }
+
+  a {
+    text-decoration: underline;
+    color: #000000;
+  }
+
+  button {
+    display: none;
+  }
+}
+
+/* Selection styles */
+::selection {
+  background-color: #1a73e8;
+  color: #ffffff;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
