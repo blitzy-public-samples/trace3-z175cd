@@ -1,0 +1,73 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Define Horizontal Pod Autoscaler (HPA) for dynamic scaling of web application pods
+# Requirements Addressed:
+# - Dynamic Scaling for Web Application (Technical Specification/System Architecture/Deployment Architecture):
+#   Ensures the web application scales dynamically based on resource utilization metrics,
+#   maintaining performance and cost efficiency.
+
+# Human Tasks:
+# 1. Verify that metrics-server is installed and functioning in the cluster
+# 2. Ensure Prometheus metrics collection is properly configured for custom metrics
+# 3. Monitor initial scaling behavior and adjust thresholds if needed
+# 4. Consider implementing custom metrics for application-specific scaling triggers
+# 5. Review and adjust min/max replicas based on actual load patterns and cost constraints
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web-hpa
+  namespace: default  # References namespace from infrastructure/kubernetes/base/namespace.yaml
+  labels:
+    app: platform
+    environment: production
+  annotations:
+    description: "Horizontal Pod Autoscaler for the web application deployment"
+spec:
+  # Reference to the target deployment that will be scaled
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: web-deployment  # References deployment from infrastructure/kubernetes/apps/web/deployment.yaml
+
+  # Scaling limits
+  minReplicas: 2  # Minimum number of replicas to maintain
+  maxReplicas: 10 # Maximum number of replicas to scale up to
+
+  # Metrics used for scaling decisions
+  metrics:
+    # CPU utilization metric
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70  # Target CPU utilization percentage
+
+    # Memory utilization metric
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80  # Target memory utilization percentage
+
+  # Behavior configuration for scaling actions
+  behavior:
+    scaleUp:
+      # How quickly to scale up when metrics exceed thresholds
+      stabilizationWindowSeconds: 60  # Wait for 1 minute before scaling up
+      policies:
+      - type: Pods
+        value: 2                      # Add up to 2 pods at a time
+        periodSeconds: 60
+      selectPolicy: Max               # Use the policy that allows for maximum scaling
+
+    scaleDown:
+      # More conservative approach to scaling down
+      stabilizationWindowSeconds: 300  # Wait for 5 minutes before scaling down
+      policies:
+      - type: Pods
+        value: 1                       # Remove only 1 pod at a time
+        periodSeconds: 60
+      selectPolicy: Min                # Use the policy that allows for minimum scaling
