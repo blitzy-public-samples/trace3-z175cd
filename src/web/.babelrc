@@ -1,0 +1,81 @@
+{
+  // Requirement: Development and Build Tools
+  // Location: Technical Specification/6. TECHNOLOGY STACK/Development & Deployment
+  // Description: Configures Babel for transpiling modern JavaScript and TypeScript code
+  "presets": [
+    // @babel/preset-env v7.x
+    // Transpiles modern JavaScript features to ES5 for browser compatibility
+    [
+      "@babel/preset-env",
+      {
+        "targets": {
+          "browsers": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all",
+            "ie >= 11"
+          ]
+        },
+        "useBuiltIns": "usage",
+        "corejs": 3,
+        "modules": false,
+        "loose": true
+      }
+    ],
+    // @babel/preset-react v7.x
+    // Handles JSX transformation and React-specific optimizations
+    [
+      "@babel/preset-react",
+      {
+        "runtime": "automatic",
+        "development": process.env.NODE_ENV === "development",
+        "importSource": "@emotion/react"
+      }
+    ],
+    // @babel/preset-typescript v7.x
+    // Transpiles TypeScript code to JavaScript
+    [
+      "@babel/preset-typescript",
+      {
+        "isTSX": true,
+        "allExtensions": true,
+        "allowNamespaces": true,
+        "allowDeclareFields": true,
+        "onlyRemoveTypeImports": true
+      }
+    ]
+  ],
+  // Requirement: Frontend Framework and Libraries
+  // Location: Technical Specification/6. TECHNOLOGY STACK/Frontend Libraries
+  // Description: Integrates with frontend libraries and optimizes bundle size
+  "plugins": [
+    // babel-plugin-tailwind-components v1.x
+    // Optimizes TailwindCSS usage through tree-shaking
+    [
+      "babel-plugin-tailwind-components",
+      {
+        "config": "./tailwind.config.js",
+        "format": "auto"
+      }
+    ]
+  ],
+  "env": {
+    "test": {
+      "presets": [
+        [
+          "@babel/preset-env",
+          {
+            "targets": {
+              "node": "current"
+            }
+          }
+        ]
+      ]
+    },
+    "production": {
+      "compact": true,
+      "comments": false,
+      "minified": true
+    }
+  }
+}
