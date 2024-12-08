@@ -1,0 +1,36 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Define Kubernetes Service resource for Grafana metrics visualization interface
+# Requirements Addressed:
+# - Monitoring and Visualization (Technical Specification/System Architecture/Deployment Architecture):
+#   Exposes Grafana service for visualizing system metrics and logs collected by Prometheus and Jaeger.
+#
+# Human Tasks:
+# 1. Verify that network policies allow access to this service from required namespaces
+# 2. Ensure firewall rules permit traffic on port 80 if accessing from outside the cluster
+# 3. Consider setting up Ingress resource if external access is needed
+# 4. Validate that service endpoints match Grafana pod selector labels
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-service
+  namespace: default
+  labels:
+    app: grafana
+    environment: production
+  annotations:
+    description: "Service resource for exposing Grafana metrics visualization interface"
+spec:
+  # Selector matches the labels on Grafana pods
+  selector:
+    app: grafana
+  
+  # Port configuration
+  ports:
+    - protocol: TCP
+      port: 80           # Port exposed by the service
+      targetPort: 3000   # Port that Grafana container listens on (from configmap)
+  
+  # Service type determines how the service is exposed
+  type: ClusterIP       # Internal cluster IP, only accessible within the cluster
