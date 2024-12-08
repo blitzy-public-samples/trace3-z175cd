@@ -1,0 +1,65 @@
+{
+  // Requirement: TypeScript Configuration
+  // Location: Technical Specification/System Design/Frontend Frameworks
+  // Description: Defines TypeScript compiler options for optimal compatibility with React and Next.js
+  "compilerOptions": {
+    // Specify ECMAScript target version
+    "target": "ES2020",
+    // Use ESNext module system for better tree shaking
+    "module": "ESNext",
+    // Enable strict type checking
+    "strict": true,
+    // Enable default imports from modules with ES module interop
+    "esModuleInterop": true,
+    // Skip type checking of declaration files
+    "skipLibCheck": true,
+    // Ensure consistent casing in file names
+    "forceConsistentCasingInFileNames": true,
+    // Support JSX for React components
+    "jsx": "react-jsx",
+    // Set base URL for module resolution
+    "baseUrl": "./",
+    // Configure path aliases for better import organization
+    "paths": {
+      "@types/*": ["src/types/*"],
+      "@utils/*": ["src/utils/*"],
+      "@components/*": ["src/components/*"],
+      "@store/*": ["src/store/*"]
+    },
+    // Specify output directory for compiled files
+    "outDir": "./dist",
+    // Specify root directory of input files
+    "rootDir": "./src",
+    // Enable importing JSON modules
+    "resolveJsonModule": true,
+    // Specify type declaration file locations
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
+    // Additional compiler options for better type safety
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "moduleResolution": "node",
+    "isolatedModules": true,
+    "incremental": true,
+    "allowSyntheticDefaultImports": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  // Requirement: Code Quality and Maintainability
+  // Location: Technical Specification/Development & Deployment/Development Environment
+  // Description: Defines project structure and file inclusion/exclusion patterns
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests/**/*.test.tsx"
+  ]
+}
