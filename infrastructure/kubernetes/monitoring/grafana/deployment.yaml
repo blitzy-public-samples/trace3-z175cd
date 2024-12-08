@@ -1,0 +1,117 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Define the Grafana Deployment resource for monitoring and visualization
+# Requirements Addressed:
+# - Monitoring and Visualization (Technical Specification/System Architecture/Monitoring):
+#   Grafana deployment provides a centralized dashboard for visualizing metrics and logs,
+#   enabling comprehensive system observability.
+
+# Human Tasks:
+# 1. Verify that the Grafana version (9.5.2) meets the project's requirements
+# 2. Ensure proper network policies are in place to allow Grafana to access data sources
+# 3. Review resource requests/limits based on actual usage patterns
+# 4. Configure persistent storage if data persistence is required
+# 5. Verify that the monitoring namespace exists before applying this deployment
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+  labels:
+    app: grafana
+    environment: production
+  annotations:
+    description: "Grafana deployment for centralized monitoring and visualization"
+spec:
+  # High availability configuration with 2 replicas
+  replicas: 2
+  
+  # Pod selector for the deployment
+  selector:
+    matchLabels:
+      app: grafana
+  
+  # Template for Grafana pods
+  template:
+    metadata:
+      labels:
+        app: grafana
+      annotations:
+        checksum/config: "${CONFIG_CHECKSUM}"  # Placeholder for config checksum to trigger pod updates on config changes
+    spec:
+      # Use the monitoring service account for proper RBAC
+      serviceAccountName: monitoring-service-account
+      
+      # Security context for the pod
+      securityContext:
+        fsGroup: 472  # Grafana default group ID
+        runAsUser: 472  # Grafana default user ID
+        runAsNonRoot: true
+      
+      containers:
+        - name: grafana
+          image: grafana/grafana:9.5.2  # Official Grafana image
+          imagePullPolicy: IfNotPresent
+          
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          
+          # Load configuration from ConfigMap and Secrets
+          envFrom:
+            - configMapRef:
+                name: grafana-config
+            - secretRef:
+                name: grafana-secrets
+          
+          # Resource requests and limits for proper scheduling and resource management
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 1
+              memory: 2Gi
+          
+          # Readiness probe to verify Grafana is ready to accept traffic
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 10
+          
+          # Liveness probe to detect and restart unhealthy pods
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          
+          # Lifecycle hooks for graceful shutdown
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 10"]
+      
+      # Pod termination grace period
+      terminationGracePeriodSeconds: 30
+      
+      # Anti-affinity to spread replicas across nodes
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - grafana
+                topologyKey: kubernetes.io/hostname
