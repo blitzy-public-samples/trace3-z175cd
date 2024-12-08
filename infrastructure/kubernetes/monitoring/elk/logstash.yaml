@@ -1,0 +1,161 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Deploy and manage Logstash for log ingestion, transformation, and forwarding
+# Requirements Addressed:
+# - Centralized Logging and Analytics (Technical Specification/System Architecture/Monitoring):
+#   Logstash is used for ingesting, transforming, and forwarding logs to Elasticsearch
+#   for centralized logging and analytics.
+
+# Human Tasks:
+# 1. Verify system resources (CPU/Memory) are sufficient for Logstash workload
+# 2. Configure appropriate log retention policies
+# 3. Review and adjust pipeline configurations based on log volume and processing needs
+# 4. Ensure network policies allow communication between Logstash and Elasticsearch
+# 5. Configure proper authentication between Logstash and Elasticsearch
+
+---
+# Deployment for Logstash
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+  namespace: default
+  labels:
+    app: elk
+    component: logstash
+    environment: production
+  annotations:
+    description: "Logstash deployment for log processing in production environment"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: elk
+      component: logstash
+  template:
+    metadata:
+      labels:
+        app: elk
+        component: logstash
+    spec:
+      serviceAccountName: default-service-account
+      containers:
+        - name: logstash
+          image: docker.elastic.co/logstash/logstash:8.9.0
+          ports:
+            - containerPort: 5044
+              name: beats
+              protocol: TCP
+            - containerPort: 9600
+              name: http
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              value: "http://elasticsearch:9200"
+            - name: ELASTICSEARCH_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: ELASTICSEARCH_USER
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: ELASTICSEARCH_PASSWORD
+            - name: LS_JAVA_OPTS
+              value: "-Xms512m -Xmx512m"
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+          volumeMounts:
+            - name: logstash-pipeline
+              mountPath: /usr/share/logstash/pipeline
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+      volumes:
+        - name: logstash-pipeline
+          configMap:
+            name: logstash-pipeline-config
+
+---
+# Service for Logstash
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstash
+  namespace: default
+  labels:
+    app: elk
+    component: logstash
+    environment: production
+  annotations:
+    description: "Service for exposing Logstash endpoints"
+spec:
+  ports:
+    - port: 5044
+      targetPort: 5044
+      protocol: TCP
+      name: beats
+    - port: 9600
+      targetPort: 9600
+      protocol: TCP
+      name: http
+  selector:
+    app: elk
+    component: logstash
+  type: ClusterIP
+
+---
+# ConfigMap for Logstash pipeline configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-pipeline-config
+  namespace: default
+  labels:
+    app: elk
+    component: logstash
+    environment: production
+data:
+  logstash.conf: |
+    input {
+      beats {
+        port => 5044
+      }
+    }
+
+    filter {
+      grok {
+        match => { "message" => "%{COMBINEDAPACHELOG}" }
+      }
+      date {
+        match => [ "timestamp", "dd/MMM/yyyy:HH:mm:ss Z" ]
+      }
+    }
+
+    output {
+      elasticsearch {
+        hosts => ["${ELASTICSEARCH_HOSTS}"]
+        user => "${ELASTICSEARCH_USER}"
+        password => "${ELASTICSEARCH_PASSWORD}"
+        index => "logstash-%{+YYYY.MM.dd}"
+      }
+    }
