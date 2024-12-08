@@ -1,0 +1,31 @@
+# Requirement: Search Engine Optimization (SEO)
+# Location: Technical Specification/5. SYSTEM DESIGN/User Interface Design/Accessibility Standards
+# Description: Ensures that the platform is easily discoverable by search engines while protecting sensitive or irrelevant sections from being indexed.
+
+User-agent: *
+
+# Allow public content to be crawled
+Allow: /
+Allow: /blog
+Allow: /posts
+Allow: /authors
+Allow: /categories
+Allow: /tags
+Allow: /about
+Allow: /contact
+
+# Disallow sensitive and private sections
+Disallow: /dashboard
+Disallow: /auth
+Disallow: /api
+Disallow: /admin
+Disallow: /settings
+Disallow: /private
+Disallow: /*.json$
+Disallow: /*?*
+
+# Reference to XML sitemap for better indexing
+Sitemap: https://example.com/sitemap.xml
+
+# Crawl-delay to prevent server overload
+Crawl-delay: 10
