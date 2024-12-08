@@ -1,0 +1,45 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Define Prometheus configuration data for metrics collection and processing
+# Requirements Addressed:
+# - Monitoring and Alerting (Technical Specification/System Architecture/Deployment Architecture):
+#   Configures Prometheus for monitoring system metrics and alerting based on defined thresholds.
+#
+# Human Tasks:
+# 1. Verify that Prometheus server deployment is configured to mount this ConfigMap
+# 2. Ensure Kubernetes RBAC permissions allow Prometheus to scrape metrics from nodes and pods
+# 3. Review and adjust scrape_interval and evaluation_interval based on performance requirements
+# 4. Validate that node and pod discovery configurations match cluster security policies
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: default  # References namespace from infrastructure/kubernetes/base/namespace.yaml
+  labels:
+    app: prometheus
+    environment: production
+data:
+  prometheus.yml: |
+    # Global configuration
+    global:
+      scrape_interval: 15s     # How frequently to scrape targets
+      evaluation_interval: 15s  # How frequently to evaluate rules
+
+    # Scrape configurations
+    scrape_configs:
+      # Job for collecting metrics from Kubernetes nodes
+      - job_name: 'kubernetes-nodes'
+        kubernetes_sd_configs:
+          - role: node
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+
+      # Job for collecting metrics from Kubernetes pods
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
