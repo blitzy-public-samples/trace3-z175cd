@@ -1,0 +1,38 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Define Kubernetes Service resource for exposing Prometheus pods within the cluster
+# Requirements Addressed:
+# - Monitoring and Alerting (Technical Specification/System Architecture/Deployment Architecture):
+#   Enables network access to Prometheus pods for monitoring system metrics and alerting.
+#
+# Human Tasks:
+# 1. Verify that cluster network policies allow traffic to port 9090
+# 2. Ensure DNS resolution is properly configured for cluster-internal service discovery
+# 3. Confirm that service endpoints are accessible from monitoring tools and dashboards
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+  namespace: default  # References namespace from infrastructure/kubernetes/base/namespace.yaml
+  labels:
+    app: prometheus
+    environment: production
+  annotations:
+    description: "Service for exposing Prometheus monitoring endpoints within the cluster"
+
+spec:
+  # Selector matches the labels defined in prometheus-deployment
+  # References deployment from infrastructure/kubernetes/monitoring/prometheus/deployment.yaml
+  selector:
+    app: prometheus
+
+  # Port configuration for Prometheus web interface and API
+  ports:
+    - name: web
+      protocol: TCP
+      port: 9090        # Service port
+      targetPort: 9090  # Container port (matches deployment port)
+
+  # ClusterIP type makes the service only accessible within the cluster
+  type: ClusterIP
