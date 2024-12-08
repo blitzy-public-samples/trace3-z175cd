@@ -1,0 +1,66 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Define Service resources for exposing the web application across different environments
+# Requirements Addressed:
+# - Service Exposure for Web Application (Technical Specification/System Architecture/Deployment Architecture):
+#   Enables internal cluster communication and external access via Ingress by exposing
+#   the web application on port 80 and targeting the application port 3000.
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+  namespace: default
+  labels:
+    app: platform
+    environment: production
+  annotations:
+    description: "Production web service for internal and external access"
+spec:
+  selector:
+    app: platform
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+  namespace: staging
+  labels:
+    app: platform
+    environment: staging
+  annotations:
+    description: "Staging web service for internal and external access"
+spec:
+  selector:
+    app: platform
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+  namespace: development
+  labels:
+    app: platform
+    environment: development
+  annotations:
+    description: "Development web service for internal and external access"
+spec:
+  selector:
+    app: platform
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
