@@ -1,0 +1,107 @@
+# Requirements Addressed:
+# - Continuous Deployment Pipeline (Technical Specification/Development & Deployment/CI/CD Pipeline)
+#   Automates the deployment of the application to staging and production environments.
+# - Infrastructure as Code (Technical Specification/System Design/Infrastructure Requirements)
+#   Utilizes Terraform for provisioning and managing cloud infrastructure during deployment.
+
+name: Continuous Deployment
+
+# Trigger deployment on successful CI workflow completion
+on:
+  workflow_run:
+    workflows: ["Continuous Integration"]
+    types:
+      - completed
+    branches:
+      - main
+
+# Environment variables
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: substack-replica
+  TERRAFORM_WORKSPACE: production
+
+# Jobs for the CD pipeline
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      # Checkout code
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Configure AWS credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Setup Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      # Initialize Terraform
+      - name: Initialize Terraform
+        working-directory: infrastructure/terraform
+        run: |
+          terraform init
+          terraform workspace select ${{ env.TERRAFORM_WORKSPACE }} || terraform workspace new ${{ env.TERRAFORM_WORKSPACE }}
+
+      # Apply Terraform changes
+      - name: Apply Terraform Changes
+        working-directory: infrastructure/terraform
+        run: terraform apply -auto-approve
+        env:
+          TF_VAR_environment: production
+
+      # Build and push backend Docker image
+      - name: Build Backend Image
+        uses: docker/build-push-action@v4
+        with:
+          context: src/backend
+          file: src/backend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}/backend:${{ github.sha }}
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}/backend:latest
+
+      # Build and push frontend Docker image
+      - name: Build Frontend Image
+        uses: docker/build-push-action@v4
+        with:
+          context: src/web
+          file: src/web/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}/frontend:${{ github.sha }}
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}/frontend:latest
+
+      # Update EKS deployment
+      - name: Update EKS Deployment
+        run: |
+          aws eks update-kubeconfig --name substack-replica-cluster --region ${{ env.AWS_REGION }}
+          kubectl set image deployment/backend backend=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}/backend:${{ github.sha }}
+          kubectl set image deployment/frontend frontend=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}/frontend:${{ github.sha }}
+
+      # Verify deployment
+      - name: Verify Deployment
+        run: |
+          kubectl rollout status deployment/backend
+          kubectl rollout status deployment/frontend
+
+      # Notify on deployment completion
+      - name: Notify Deployment Status
+        if: always()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_COLOR: ${{ job.status == 'success' && '#36A64F' || '#FF0000' }}
+          SLACK_MESSAGE: 'Deployment to production ${{ job.status == "success" && "completed successfully" || "failed" }}'
+          SLACK_TITLE: Production Deployment Status
