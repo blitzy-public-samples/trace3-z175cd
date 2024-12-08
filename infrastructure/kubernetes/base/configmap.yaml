@@ -1,0 +1,59 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Define ConfigMaps for storing non-sensitive configuration data across environments
+# Requirements Addressed:
+# - Configuration Management (Technical Specification/System Architecture/Deployment Architecture):
+#   ConfigMaps store non-sensitive configuration data, enabling environment-specific 
+#   configurations for applications running in Kubernetes.
+
+# Human Tasks:
+# 1. Verify that the configuration values align with the application requirements for each environment
+# 2. Ensure the LOG_LEVEL settings are appropriate for security and operational needs
+# 3. Confirm FEATURE_FLAG settings match the feature rollout strategy
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: default
+  labels:
+    app: platform
+    environment: production
+  annotations:
+    description: "Production environment configuration for Substack Replica platform"
+data:
+  APP_NAME: "Substack Replica"
+  LOG_LEVEL: "info"
+  FEATURE_FLAG: "true"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: staging
+  labels:
+    app: platform
+    environment: staging
+  annotations:
+    description: "Staging environment configuration for Substack Replica platform"
+data:
+  APP_NAME: "Substack Replica (Staging)"
+  LOG_LEVEL: "debug"
+  FEATURE_FLAG: "false"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: development
+  labels:
+    app: platform
+    environment: development
+  annotations:
+    description: "Development environment configuration for Substack Replica platform"
+data:
+  APP_NAME: "Substack Replica (Development)"
+  LOG_LEVEL: "debug"
+  FEATURE_FLAG: "true"
