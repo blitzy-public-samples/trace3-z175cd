@@ -1,0 +1,71 @@
+{
+  // Requirement: Code Quality and Standards
+  // Location: System Design/Cross-Cutting Concerns/Code Quality
+  // Description: Configures ESLint rules to enforce consistent coding standards
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  // Requirement: Frontend Framework and Libraries
+  // Location: Technical Specification/6. TECHNOLOGY STACK/Frontend Libraries
+  // Description: Extends ESLint with plugins for React, TypeScript, and other frontend libraries
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:jsx-a11y/recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "prettier"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 12,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "project": "./tsconfig.json"
+  },
+  "plugins": [
+    "react",
+    "@typescript-eslint",
+    "jsx-a11y",
+    "import"
+  ],
+  "rules": {
+    // Disable React import requirement for Next.js
+    "react/react-in-jsx-scope": "off",
+    // Disable prop-types as we use TypeScript
+    "react/prop-types": "off",
+    // Configure unused variables rule with special pattern for ignored args
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_"
+      }
+    ],
+    // Enforce alphabetical import ordering
+    "import/order": [
+      "error",
+      {
+        "alphabetize": {
+          "order": "asc"
+        }
+      }
+    ],
+    // Set anchor validation to warning level
+    "jsx-a11y/anchor-is-valid": "warn"
+  },
+  "settings": {
+    // Automatically detect React version
+    "react": {
+      "version": "detect"
+    },
+    // Configure import resolver for TypeScript
+    "import/resolver": {
+      "typescript": {}
+    }
+  }
+}
