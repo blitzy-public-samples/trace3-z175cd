@@ -1,0 +1,53 @@
+# Excludes Node.js dependencies (installed during build)
+node_modules/
+
+# Addresses requirement: Optimized Docker Image Build
+# Excludes build artifacts
+dist/
+build/
+
+# Addresses requirement: Security and Confidentiality
+# Prevents sensitive configuration files from being included
+.env
+.env.*
+*.env
+
+# Addresses requirement: Optimized Docker Image Build
+# Excludes test files not needed in production
+tests/
+__tests__/
+*.test.js
+*.spec.js
+
+# Addresses requirement: Optimized Docker Image Build
+# Excludes Docker-related files not needed in the image
+docker-compose*.yml
+Dockerfile*
+
+# Addresses requirement: Optimized Docker Image Build
+# Excludes log files
+*.log
+logs/
+
+# Addresses requirement: Optimized Docker Image Build
+# Excludes cache files and directories
+*.cache
+.cache/
+.npm/
+.yarn/
+
+# Addresses requirement: Optimized Docker Image Build
+# Excludes version control files and directories
+.git/
+.gitignore
+.gitattributes
+
+# Additional development files not needed in production
+README.md
+CHANGELOG.md
+.eslintrc*
+.prettierrc*
+.editorconfig
+coverage/
+jest.config.js
+nodemon.json
