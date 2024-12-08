@@ -1,0 +1,17 @@
+Human tasks required:
+1. Create or obtain a placeholder image file meeting these specifications:
+   - Format: PNG
+   - Suggested dimensions: 300x300 pixels (standard placeholder size)
+   - Content: Simple, neutral design with visual indication that it's a placeholder
+   - Color scheme: Light gray background (#F5F5F5) with darker gray icon/text (#808080)
+   - File size: Optimized for web use (<50KB)
+   - Accessibility: Ensure sufficient contrast for visibility
+   - Consider including a simple icon or text indicating "No Image Available"
+   
+2. Save the image as "placeholder.png" in the src/web/public/assets/images/ directory
+
+3. Verify the image displays correctly in the web application's various use cases:
+   - Profile pictures
+   - Post thumbnails
+   - Media galleries
+   - Any other locations where images may be missing
