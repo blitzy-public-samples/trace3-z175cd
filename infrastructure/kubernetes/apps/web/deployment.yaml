@@ -1,0 +1,164 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Define Kubernetes Deployments for the web application across different environments
+# Requirements Addressed:
+# - Web Application Deployment (Technical Specification/System Architecture/Deployment Architecture):
+#   Ensures the web application is deployed in the Kubernetes cluster with the specified number
+#   of replicas, container image, and resource configurations.
+
+# Human Tasks:
+# 1. Verify that container image tags (latest, staging, development) exist in the container registry
+# 2. Ensure resource limits and requests are appropriate for the application workload
+# 3. Validate that the ConfigMap and Secret references contain all required configuration
+# 4. Consider implementing horizontal pod autoscaling for production environment
+# 5. Review container security context and consider adding securityContext specifications
+# 6. Implement readiness and liveness probes based on application health endpoints
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deployment
+  namespace: default
+  labels:
+    app: platform
+    environment: production
+  annotations:
+    description: "Production deployment for the web application"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: platform
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: platform
+    spec:
+      serviceAccountName: default-service-account
+      containers:
+        - name: web-container
+          image: substack-replica/web:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deployment
+  namespace: staging
+  labels:
+    app: platform
+    environment: staging
+  annotations:
+    description: "Staging deployment for the web application"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: platform
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: platform
+    spec:
+      serviceAccountName: staging-service-account
+      containers:
+        - name: web-container
+          image: substack-replica/web:staging
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deployment
+  namespace: development
+  labels:
+    app: platform
+    environment: development
+  annotations:
+    description: "Development deployment for the web application"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: platform
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: platform
+    spec:
+      serviceAccountName: development-service-account
+      containers:
+        - name: web-container
+          image: substack-replica/web:development
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
