@@ -1,0 +1,51 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Define the Kubernetes Service resource for exposing the backend application
+# Requirements Addressed:
+# - Backend Service Exposure (Technical Specification/System Architecture/Deployment Architecture):
+#   Ensures the backend application is accessible within the Kubernetes cluster and optionally to external clients.
+
+# Human Tasks:
+# 1. Verify that the service port matches the application's configured port
+# 2. Configure network policies to control traffic to the service
+# 3. Set up monitoring for service health and latency
+# 4. Review and adjust load balancing settings if needed
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: default
+  labels:
+    app: backend
+    environment: production
+  annotations:
+    description: "Service resource for exposing the backend application within the Kubernetes cluster"
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+    prometheus.io/path: "/metrics"
+
+spec:
+  # Selector to match backend pods
+  selector:
+    app: backend
+
+  # Port configuration
+  ports:
+    - protocol: TCP
+      port: 8080        # Port exposed by the service
+      targetPort: 8080  # Port on the pods to forward to
+      name: http
+
+  # Service type (ClusterIP for internal access)
+  type: ClusterIP
+
+  # Session affinity configuration
+  sessionAffinity: None
+
+  # Publishing not ready addresses configuration
+  publishNotReadyAddresses: false
+
+  # IP family policy configuration
+  ipFamilyPolicy: SingleStack
+  ipFamilies:
+    - IPv4
