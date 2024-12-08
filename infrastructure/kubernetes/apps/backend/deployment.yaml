@@ -1,0 +1,145 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Define the Kubernetes Deployment resource for the backend application
+# Requirements Addressed:
+# - Backend Deployment (Technical Specification/System Architecture/Deployment Architecture):
+#   Ensures the backend application is deployed in a scalable and reliable manner using Kubernetes.
+
+# Human Tasks:
+# 1. Verify resource limits match application requirements and cluster capacity
+# 2. Configure monitoring and alerts for pod health checks
+# 3. Review security context settings for production deployment
+# 4. Ensure proper network policies are in place
+# 5. Set up proper logging collection from containers
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: default
+  labels:
+    app: backend
+    environment: production
+  annotations:
+    description: "Backend application deployment for the Substack Replica platform"
+    kubernetes.io/change-cause: "Initial deployment of backend application"
+
+spec:
+  # Run 3 replicas for high availability
+  replicas: 3
+
+  # Selector for pod management
+  selector:
+    matchLabels:
+      app: backend
+
+  # Strategy for updating pods
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  template:
+    metadata:
+      labels:
+        app: backend
+        environment: production
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+
+    spec:
+      # Use the default service account
+      serviceAccountName: default-service-account
+
+      # Security context for the pod
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1000
+
+      # Container specifications
+      containers:
+        - name: backend-container
+          image: node:18-alpine
+          imagePullPolicy: IfNotPresent
+
+          # Security context for the container
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 1000
+            runAsGroup: 1000
+            readOnlyRootFilesystem: true
+
+          # Container ports
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+
+          # Environment variables from ConfigMap and Secrets
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+
+          # Resource limits and requests
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+
+          # Liveness probe for container health checks
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # Readiness probe for service availability
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+          # Volume mounts for the container
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: logs
+              mountPath: /usr/src/app/logs
+
+      # Volumes for the pod
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: logs
+          emptyDir: {}
+
+      # Pod termination grace period
+      terminationGracePeriodSeconds: 30
+
+      # Node affinity and anti-affinity rules
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - backend
+                topologyKey: kubernetes.io/hostname
