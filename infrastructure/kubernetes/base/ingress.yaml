@@ -1,0 +1,117 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Define Ingress resources for managing external access to services within the cluster
+# Requirements Addressed:
+# - External Access Management (Technical Specification/System Architecture/Deployment Architecture):
+#   Ingress resources manage external access to services within the Kubernetes cluster,
+#   enabling routing based on hostnames and paths.
+
+# Human Tasks:
+# 1. Configure DNS records to point to the Ingress controller's external IP/hostname
+# 2. Ensure SSL certificates are properly configured and renewed
+# 3. Set up monitoring for Ingress traffic and response times
+# 4. Configure appropriate security headers and CORS policies
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: platform-ingress
+  namespace: default
+  labels:
+    app: platform
+    environment: production
+  annotations:
+    description: "Ingress resource for routing external traffic to the web and backend services in the production environment"
+spec:
+  tls:
+    - hosts:
+        - platform.example.com
+      secretName: app-secrets
+  rules:
+    - host: platform.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-service
+                port:
+                  number: 80
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-service
+                port:
+                  number: 8080
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: platform-ingress
+  namespace: staging
+  labels:
+    app: platform
+    environment: staging
+  annotations:
+    description: "Ingress resource for routing external traffic to the web and backend services in the staging environment"
+spec:
+  tls:
+    - hosts:
+        - staging.platform.example.com
+      secretName: app-secrets
+  rules:
+    - host: staging.platform.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-service
+                port:
+                  number: 80
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-service
+                port:
+                  number: 8080
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: platform-ingress
+  namespace: development
+  labels:
+    app: platform
+    environment: development
+  annotations:
+    description: "Ingress resource for routing external traffic to the web and backend services in the development environment"
+spec:
+  tls:
+    - hosts:
+        - dev.platform.example.com
+      secretName: app-secrets
+  rules:
+    - host: dev.platform.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-service
+                port:
+                  number: 80
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-service
+                port:
+                  number: 8080
