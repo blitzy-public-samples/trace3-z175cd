@@ -1,0 +1,96 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Deployment configuration for Jaeger distributed tracing system
+# Requirements Addressed:
+# - Distributed Tracing (Technical Specification/System Architecture/Cross-Cutting Concerns):
+#   Jaeger provides distributed tracing capabilities for monitoring and debugging microservices-based applications.
+# Human Tasks:
+# - Ensure monitoring namespace exists before applying this deployment
+# - Verify monitoring-service-account exists and has appropriate permissions
+# - Configure network policies to allow required ports (16686 for UI, 14268 for collector)
+# - Set up appropriate ingress rules for accessing the Jaeger UI
+# - Consider configuring persistent storage for trace data in production
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  namespace: monitoring
+  labels:
+    app: jaeger
+    environment: production
+  annotations:
+    description: "Jaeger all-in-one deployment for distributed tracing"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: jaeger
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: jaeger
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "16686"
+    spec:
+      serviceAccountName: monitoring-service-account
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: jaeger
+          image: jaegertracing/all-in-one:1.41.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 16686
+              name: ui
+              protocol: TCP
+            - containerPort: 14268
+              name: collector
+              protocol: TCP
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          env:
+            - name: COLLECTOR_ZIPKIN_HTTP_PORT
+              value: "9411"
+            - name: MEMORY_MAX_TRACES
+              value: "50000"
+            - name: QUERY_BASE_PATH
+              value: "/jaeger"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 16686
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 16686
+            initialDelaySeconds: 15
+            periodSeconds: 20
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - jaeger
+                topologyKey: kubernetes.io/hostname
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
