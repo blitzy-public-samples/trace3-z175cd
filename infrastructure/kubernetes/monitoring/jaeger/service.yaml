@@ -1,0 +1,38 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Service configuration for Jaeger distributed tracing system
+# Requirements Addressed:
+# - Distributed Tracing (Technical Specification/System Architecture/Cross-Cutting Concerns):
+#   Jaeger provides distributed tracing capabilities for monitoring and debugging microservices-based applications.
+# Human Tasks:
+# - Verify that the monitoring namespace exists before applying this service
+# - Ensure Jaeger deployment is running and healthy
+# - Configure network policies to allow inbound traffic to ports 16686 (UI) and 14268 (collector)
+# - Set up appropriate ingress rules if external access to Jaeger UI is required
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-service
+  namespace: monitoring
+  labels:
+    app: jaeger
+    environment: production
+  annotations:
+    description: "Service for exposing Jaeger UI and collector endpoints within the cluster"
+spec:
+  # Selector matches the labels defined in the Jaeger deployment pods
+  selector:
+    app: jaeger
+  # Expose both UI and collector ports
+  ports:
+    - name: ui
+      protocol: TCP
+      port: 16686        # Service port
+      targetPort: 16686  # Container port (matches deployment)
+    - name: collector
+      protocol: TCP
+      port: 14268        # Service port
+      targetPort: 14268  # Container port (matches deployment)
+  # ClusterIP type for internal cluster access
+  type: ClusterIP
