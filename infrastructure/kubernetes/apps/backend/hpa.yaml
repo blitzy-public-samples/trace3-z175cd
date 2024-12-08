@@ -1,0 +1,52 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Define the Horizontal Pod Autoscaler (HPA) for the backend application
+# Requirements Addressed:
+# - Backend Autoscaling (Technical Specification/System Architecture/Deployment Architecture):
+#   Ensures the backend application scales dynamically based on CPU and memory utilization
+#   to meet performance and reliability requirements.
+
+# Human Tasks:
+# 1. Verify that metrics-server is installed and functioning in the cluster
+# 2. Configure appropriate resource requests/limits in backend deployment
+# 3. Monitor autoscaling behavior and adjust thresholds if needed
+# 4. Set up alerts for sustained high resource utilization
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend-hpa
+  namespace: default
+  labels:
+    app: backend
+    environment: production
+  annotations:
+    description: "Horizontal Pod Autoscaler for dynamically scaling backend pods based on CPU and memory utilization"
+
+spec:
+  # Reference to the backend deployment that will be scaled
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend-deployment
+
+  # Scaling limits
+  minReplicas: 2  # Minimum number of pods to maintain
+  maxReplicas: 10 # Maximum number of pods to scale up to
+
+  # Metrics used for scaling decisions
+  metrics:
+    # CPU utilization metric
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70  # Target CPU utilization percentage
+
+    # Memory utilization metric
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80  # Target memory utilization percentage
