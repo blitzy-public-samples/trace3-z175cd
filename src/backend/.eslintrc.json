@@ -1,0 +1,41 @@
+{
+  "env": {
+    "node": true,
+    "es2021": true
+  },
+  "parser": "@typescript-eslint/parser", // v5.0.0
+  "parserOptions": {
+    "ecmaVersion": 12,
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "plugins": [
+    "@typescript-eslint", // v5.0.0
+    "prettier" // v4.0.0
+  ],
+  "extends": [
+    "eslint:recommended", // v8.0.0
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended" // Uses eslint-config-prettier v8.0.0
+  ],
+  "rules": {
+    // Integrates with Prettier configuration from .prettierrc
+    "prettier/prettier": "error",
+    // Ignore unused variables that start with underscore
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_"
+      }
+    ],
+    // Allow implicit return types for better code readability
+    "@typescript-eslint/explicit-function-return-type": "off",
+    // Warn when using 'any' type to maintain type safety while allowing exceptions
+    "@typescript-eslint/no-explicit-any": "warn"
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "tests/"
+  ]
+}
