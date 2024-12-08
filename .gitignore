@@ -1,0 +1,39 @@
+# General temporary and system files
+*.log
+*.tmp
+*.lock
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
+
+# Backend - Dependencies, build artifacts, and sensitive files
+src/backend/node_modules/
+src/backend/dist/
+src/backend/.env
+src/backend/.env.*
+src/backend/coverage/
+src/backend/logs/
+src/backend/tmp/
+
+# Frontend - Dependencies, build artifacts, and sensitive files
+src/web/node_modules/
+src/web/.next/
+src/web/.env
+src/web/.env.*
+src/web/coverage/
+src/web/logs/
+src/web/tmp/
+
+# Infrastructure - Terraform and Kubernetes files
+infrastructure/terraform/.terraform/
+infrastructure/terraform/*.tfstate
+infrastructure/terraform/*.tfstate.backup
+infrastructure/terraform/.terraform.lock.hcl
+infrastructure/kubernetes/*.yaml~
+
+# Editor-specific files
+*.vscode/
+*.idea/
+*.sublime-workspace
+*.sublime-project
