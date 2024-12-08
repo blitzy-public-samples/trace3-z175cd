@@ -1,0 +1,99 @@
+# Kubernetes Version: 1.26.x
+# Purpose: Define Prometheus deployment configuration for metrics collection and monitoring
+# Requirements Addressed:
+# - Monitoring and Alerting (Technical Specification/System Architecture/Deployment Architecture):
+#   Deploys Prometheus pods for monitoring system metrics and alerting based on defined thresholds.
+#
+# Human Tasks:
+# 1. Verify that node ports and security groups allow access to port 9090
+# 2. Ensure sufficient CPU/Memory resources are available in the cluster for 2 replicas
+# 3. Review and adjust resource limits/requests based on actual usage patterns
+# 4. Validate that persistent storage is not required for this deployment
+# 5. Confirm that the specified Prometheus version (v2.45.0) meets security requirements
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-deployment
+  namespace: default  # References namespace from infrastructure/kubernetes/base/namespace.yaml
+  labels:
+    app: prometheus
+    environment: production
+  annotations:
+    description: "Prometheus deployment for production monitoring and alerting"
+spec:
+  # High availability configuration with 2 replicas
+  replicas: 2
+  
+  # Pod selector for deployment management
+  selector:
+    matchLabels:
+      app: prometheus
+  
+  # Pod template specification
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      # Reference to ServiceAccount from infrastructure/kubernetes/base/serviceaccount.yaml
+      serviceAccountName: default-service-account
+      
+      # Container specifications
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.45.0
+          imagePullPolicy: IfNotPresent
+          
+          # Container port configuration
+          ports:
+            - name: web
+              containerPort: 9090
+              protocol: TCP
+          
+          # Resource limits and requests
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+          
+          # Liveness probe to check container health
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: web
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+          
+          # Readiness probe to check if container is ready to serve traffic
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: web
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+          
+          # Volume mounts for configuration
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/prometheus
+      
+      # Volumes configuration
+      volumes:
+        # Reference to ConfigMap from infrastructure/kubernetes/monitoring/prometheus/configmap.yaml
+        - name: config-volume
+          configMap:
+            name: prometheus-config
+      
+      # Pod scheduling and security configuration
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534  # nobody user
+        fsGroup: 65534
+      
+      # Termination grace period for clean shutdown
+      terminationGracePeriodSeconds: 300
