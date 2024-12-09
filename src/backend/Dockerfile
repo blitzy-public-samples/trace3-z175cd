@@ -13,7 +13,7 @@
 
 # Use Node.js 18 Alpine as base image for a lightweight runtime environment
 # node v18-alpine
-FROM node:18-alpine
+FROM node:23-alpine
 
 # Set working directory
 WORKDIR /usr/src/app
