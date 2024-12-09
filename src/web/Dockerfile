@@ -1,7 +1,7 @@
 # Requirement: Containerization and Deployment
 # Location: Technical Specification/6. TECHNOLOGY STACK/Development & Deployment
 # Description: Base image selection for optimal Node.js runtime environment
-FROM node:18-alpine
+FROM node:23-alpine
 
 # Install system dependencies
 RUN apk add --no-cache \
